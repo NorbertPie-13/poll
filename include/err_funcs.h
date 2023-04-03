@@ -12,6 +12,17 @@
 #ifndef ERR_FUNCS_H
 #define ERR_FUNCS_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <ctype.h>
+
+#define ERROR    -1
+#define FAIL     1
+#define NINE 58
+#define BACKSLASH 47
+
 /**
  * @brief Check pointer for reference.
  *
@@ -19,15 +30,6 @@
  * @return void
  */
 void err_funcs_print_error(const char * p_name);
-
-
-/**
- * @brief Validate the number of arguments for the program.
- *
- * @param args The amount of arguments taken from commandline
- * @return Return 1 on failure, 0 on success.
- */
-int err_funcs_validate_argc(int args);
 
 /**
  * @brief Check for function to if socket function is in Error state
