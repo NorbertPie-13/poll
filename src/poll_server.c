@@ -1,7 +1,5 @@
 #include "poll_server.h"
-#include <string.h>
-#define DOUBLE 2
-#define NEW_STRUCT 1
+
 
 
 int poll_server_add(struct pollfd **poll_structs, int client_fd, int* poll_count, int * max_size)
@@ -60,3 +58,5 @@ int poll_remove(struct pollfd *poll_structs, int index, int * poll_count)
     EXIT:
         return ret_val;
 }
+
+/* End of File */
