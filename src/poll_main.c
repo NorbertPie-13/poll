@@ -1,42 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <poll.h>
-#include <errno.h>
-#include "server.h"
-#include "poll_server.h"
-#include "err_funcs.h"
-#include <signal.h>
-
-
-#define ARGS 2
-#define FAIL 1
-#define PASS 0
+#include "poll_main.h"
 
 volatile sig_atomic_t running = 0;
-
-// Add a new file descriptor to the set
-void add_to_pfds(struct pollfd *pfds[], int newfd, int *fd_count, int *fd_size)
-{
-    // If we don't have room, add more space in the pfds array
-    if (*fd_count == *fd_size) {
-        *fd_size *= 2; // Double it
-
-        *pfds = realloc(*pfds, sizeof(**pfds) * (*fd_size));
-    }
-
-    (*pfds)[*fd_count].fd = newfd;
-    (*pfds)[*fd_count].events = POLLIN; // Check ready-to-read
-
-    (*fd_count)++;
-}
-
 
 void
 signal_handler(int signo)
@@ -105,7 +69,8 @@ int main(int argc, char ** argv)
         for(int i = 0; i < fd_count; i++) {
 
             // Check if someone's ready to read
-            if (pfds[i].revents & POLLIN) { // We got one!!
+            if (pfds[i].revents & POLLIN)
+            { // We got one!!
 
                 if (pfds[i].fd == listener)
                 {
@@ -168,3 +133,5 @@ int main(int argc, char ** argv)
     EXIT:
         return ret_val;
 }
+
+/* End of File */
