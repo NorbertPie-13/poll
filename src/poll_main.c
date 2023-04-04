@@ -17,10 +17,10 @@ int main(int argc, char ** argv)
     int ret_val = FAIL;
     if (ARGS != argc)
     {
-        printf("Not correct arguments\n");
+        fprintf(stderr, "./<executable path> <file>\n");
         goto EXIT;
     }
-    struct sigaction signals;
+    struct sigaction signals = { 0 };
     sigemptyset(&signals.sa_mask);
     signals.sa_flags   = SA_RESTART;
     signals.sa_handler = signal_handler;
@@ -31,22 +31,19 @@ int main(int argc, char ** argv)
     }
      // Newly accept()ed socket descriptor
 
-    char buf[256];    // Buffer for client data
+    char buf[BUFF_SZ] = { 0 };    // Buffer for client data
 
     // Start off with room for 5 connections
     // (We'll realloc as necessary)
     int fd_count = 0;
-    int fd_size = 2;
+    int fd_size = SIZE;
     struct pollfd *pfds = calloc(fd_size, sizeof(*pfds));
 
     // Set up and get a listening socket
-    if (FAIL == err_funcs_check_num_string(argv[1]))
+    
+    int listener = unix_server_setup(argv[1]);
+    if (ERROR == listener)
     {
-        goto DESTROY_POLL;
-    }
-    int listener = server_setup(argv[1]);
-    if (-1 == listener) {
-        fprintf(stderr, "error getting listening socket\n");
         goto DESTROY_POLL;
     }
 
@@ -54,13 +51,14 @@ int main(int argc, char ** argv)
     pfds[0].fd = listener;
     pfds[0].events = POLLIN; // Report ready to read on incoming connection
 
-    fd_count = 1; // For the listener
+     // For the listener
+    ++fd_count;
 
     while (0 == running)
     {
-        int poll_count = poll(pfds, fd_count, -1);
+        int poll_count = poll(pfds, fd_count, ERROR);
 
-        if (poll_count == -1) {
+        if (poll_count == ERROR) {
             perror("poll");
             break;
         }
@@ -76,23 +74,29 @@ int main(int argc, char ** argv)
                 {
                     // If listener is ready to read, handle new connection
 
-                    int newfd = server_accept(listener);
-
-                    if (newfd == -1)
+                    int newfd = 0;
+                    if (FAIL != unix_accept(listener, &newfd))
                     {
-                        perror("accept");
-                    } else {
                         if (FAIL == poll_server_add(&pfds, newfd, &fd_count, &fd_size))
                         {
                             goto DESTROY_POLL;
                         }
                     }
-                } else {
-                    // If not the listener, we're just a regular clien
-                    int nbytes = server_recv_data(pfds[i].fd, buf, sizeof(buf));
-                    // printf("%d bytes from %d\n", nbytes, pfds[i].fd);
                     
+                    printf("Connection from socket: %d\n", newfd);
+                }
+                else
+                {
+                    
+                    // If not the listener, we're just a regular clien
+                    server_recv_data(pfds[i].fd, buf, 8);
 
+                    custom_header_t * incoming = (custom_header_t *) buf;
+                    int32_t size = incoming->len;
+                    printf("Incoming: %d\n", size);
+                    int nbytes = server_recv_data(pfds[i].fd, buf, size);
+                    printf("%d bytes from %d\n", nbytes, pfds[i].fd);
+                    printf("Buffer>> %s", buf);
                     int sender_fd = pfds[i].fd;
                     if ( 0 >= nbytes)
                     {
@@ -108,16 +112,18 @@ int main(int argc, char ** argv)
 
                     } else {
                         
+                        
                         for (int i = 0; i < fd_count; i++)
                         {
                             int dest = pfds[i].fd;
 
                             if (dest != listener && dest != sender_fd)
                             {
-                                send(dest, buf, sizeof(buf), 0);
+                                send(pfds[i].fd, buf, sizeof(buf), 0);
                             }
 
                         }
+
                         // We got some good data from a client
                         
                         memset(buf, 0, sizeof(buf));
@@ -129,6 +135,7 @@ int main(int argc, char ** argv)
     ret_val = PASS;
     DESTROY_POLL:
         free(pfds);
+        pfds = NULL;
         
     EXIT:
         return ret_val;

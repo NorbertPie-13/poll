@@ -41,12 +41,15 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
   src/server.c
   src/poll_server.c
   src/err_funcs.c
+  src/unix_socket.c
   )
 
 set(HEADERS
   include/server.h
   include/poll_server.h
   include/err_funcs.h
+  include/unix_socket.h
+  include/poll_main.h
   )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
