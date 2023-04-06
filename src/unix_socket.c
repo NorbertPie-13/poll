@@ -113,16 +113,18 @@ int unix_send_data(int sockfd, char * buffer, int *buffer_sz)
     int total_bytes_sent = 0;
     int bytes_remaining = *buffer_sz;
     int bytes_sent = 0;
-    if ((-1 == sockfd) || (NULL == buffer) || (NULL == buffer_sz))
+    if (-1 == sockfd)
     {
-        if (-1 == sockfd)
-        {
-            fprintf(stderr, "Socket is closed.\n");
-        } else {
-            err_funcs_print_error(__func__);
-        }
+        fprintf(stderr, "Socket is closed.\n");
+        goto EXIT;
+    } 
+
+    if ((NULL == buffer) || (NULL == buffer_sz))
+    {
+        err_funcs_print_error(__func__);
         goto EXIT;
     }
+
     while (total_bytes_sent < *buffer_sz)
     {
         bytes_sent = send(sockfd, buffer + total_bytes_sent, bytes_remaining, 0);
@@ -155,19 +157,21 @@ int unix_recv_data(int sockfd, char * buffer, int buffer_sz)
     ssize_t bytes_recv = 0;
     ssize_t total_bytes_recv = 0;
     int bytes_remaining = buffer_sz;
-    if ((-1 == sockfd) || (NULL == buffer))
+    if (-1 == sockfd) 
+    
     {
-        if (-1 == sockfd)
-        {
-            fprintf(stderr, "Socket is closed.\n");
-        } else {
-            err_funcs_print_error(__func__);
-        }
+        fprintf(stderr, "Socket is closed.\n");
+        goto EXIT;
+    }
+    if (NULL == buffer)
+    {
+        err_funcs_print_error(__func__);
         goto EXIT;
     }
 
-    for(;;)
+    while (total_bytes_recv < bytes_remaining)
     {
+        // Running is an external variable used in the threading case.
         if (1 == running)
         {
             goto EXIT;
@@ -184,6 +188,8 @@ int unix_recv_data(int sockfd, char * buffer, int buffer_sz)
             {
                 goto EXIT_COMPLETE;
             } else {
+                perror("Recv");
+                errno = 0;
                 goto EXIT;
             }
         }
