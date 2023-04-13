@@ -17,7 +17,7 @@ for arg; do
     esac
 done
 
-mkdir build
+
 cd build
 cmake ..  $BUILD_DIR -DCMAKE_BUILD_TYPE=$TYPE 
 make

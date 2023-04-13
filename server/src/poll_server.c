@@ -1,7 +1,5 @@
 #include "poll_server.h"
 
-
-
 int poll_server_add(struct pollfd **poll_structs, int client_fd, int* poll_count, int * max_size)
 {
     int ret_val = EXIT_FAILURE;

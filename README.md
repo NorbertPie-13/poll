@@ -41,3 +41,21 @@ Poll would be used when its unknown how many communication chains will be needed
 | - Faster when used with less than 1024 file descriptors | - Can handle greater amount of file descriptors at a consistent rate|
 | - Static allocation | - Can dynamically allocate |
 | - Uses at most 3 bits per file descriptor | - Uses 64 bits per file descriptor|
+
+## Example
+<ol>
+  <li> Run ./build.sh
+  <li> The server is located in /build/bin/poll_server
+      <ul>
+        <li> To run, <code>./poll_server &ltUNIX_FILEPATH&gt</code>
+        <li> The server should display that it is awaiting connections.
+        <li> Upon a connection the server should display the amount of characters of a filename and the number of characters in the file.
+       </ul>
+  <li> The client is located in /build/bin/poll_client
+    <ul>
+      <li> To run, <code> ./poll_client &ltUNIX_FILEPATH&gt &ltFILE&gt </code>
+      <li> FILE is the file of which you want to grab a spiecific amount of characters from.
+      <li> The client should say connected and then display if it failed or succeeded. Then close.
+    </ul>
+</ol>
+      

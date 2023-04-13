@@ -11,7 +11,6 @@ signal_handler(int signo)
     }
 }
 
-// Main
 int main(int argc, char ** argv)
 {
     int ret_val = FAIL;
@@ -29,18 +28,13 @@ int main(int argc, char ** argv)
         perror("sigaction");
         goto EXIT;
     }
-     // Newly accept()ed socket descriptor
 
     char buf[BUFF_SZ] = { 0 };    // Buffer for client data
 
-    // Start off with room for 5 connections
-    // (We'll realloc as necessary)
     int fd_count = 0;
     int fd_size = SIZE;
     struct pollfd *pfds = calloc(fd_size, sizeof(*pfds));
 
-    // Set up and get a listening socket
-    
     int listener = unix_server_setup(argv[1]);
     if (ERROR == listener)
     {
@@ -49,9 +43,9 @@ int main(int argc, char ** argv)
 
     // Add the listener to set
     pfds[0].fd = listener;
-    pfds[0].events = POLLIN; // Report ready to read on incoming connection
+    pfds[0].events = POLLIN;
 
-     // For the listener
+    // For the listener
     ++fd_count;
 
     while (0 == running)
@@ -68,7 +62,7 @@ int main(int argc, char ** argv)
 
             // Check if someone's ready to read
             if (pfds[i].revents & POLLIN)
-            { // We got one!!
+            { 
 
                 if (pfds[i].fd == listener)
                 {
@@ -79,7 +73,7 @@ int main(int argc, char ** argv)
                     {
                         if (FAIL == poll_server_add(&pfds, newfd, &fd_count, &fd_size))
                         {
-                            goto DESTROY_POLL;
+                            goto CLOSE;
                         }
                     }
                     
@@ -88,57 +82,65 @@ int main(int argc, char ** argv)
                 else
                 {
                     
-                    // If not the listener, we're just a regular clien
-                    server_recv_data(pfds[i].fd, buf, 8);
+                    int nbytes = unix_recv_data(pfds[i].fd, buf, 16);
 
-                    custom_header_t * incoming = (custom_header_t *) buf;
-                    int32_t size = incoming->len;
-                    printf("Incoming: %d\n", size);
-                    int nbytes = server_recv_data(pfds[i].fd, buf, size);
-                    printf("%d bytes from %d\n", nbytes, pfds[i].fd);
-                    printf("Buffer>> %s", buf);
                     int sender_fd = pfds[i].fd;
                     if ( 0 >= nbytes)
                     {
-                        // Got error or connection closed by client
+
                         if (0 == nbytes)
                         {
                             printf("pollserver: socket %d hung up\n", sender_fd);
-                        } else {
+                        }
+                        else
+                        {
                             perror("recv");
                         }
-                        close(pfds[i].fd); // Bye!
+                        close(pfds[i].fd);
                         poll_remove(pfds, i, &fd_count);
 
-                    } else {
+                    }
+                    else
+                    {
+                        response_t return_code = { 0 };
+
+                        file_header_t header = { 0 };
+
+                        memmove(&header, buf, 8);
                         
-                        
-                        for (int i = 0; i < fd_count; i++)
+                        printf("File name size: %d\n", header.file_name_length);
+                        printf("File length: %d\n", header.file_length);
+
+                        if (0 < header.file_length)
                         {
-                            int dest = pfds[i].fd;
-
-                            if (dest != listener && dest != sender_fd)
-                            {
-                                send(pfds[i].fd, buf, sizeof(buf), 0);
-                            }
-
+                            return_code.return_code = SUCCESS;
+                        }
+                        else
+                        {
+                            return_code.return_code = INOP;
                         }
 
-                        // We got some good data from a client
-                        
+                        size_t size = sizeof(response_t);
+
+                        unix_send_data(sender_fd, &return_code, &size);
                         memset(buf, 0, sizeof(buf));
+
                     }
-                } // END handle data from client
-            } // END got ready-to-read from poll()
-        } // END looping through file descriptors
-    } // END for(;;)--and you thought it would never end!
+                }
+            }
+        }
+    }
+
+CLOSE:
+    close(pfds[0].fd);
+
     ret_val = PASS;
-    DESTROY_POLL:
-        free(pfds);
-        pfds = NULL;
-        
-    EXIT:
-        return ret_val;
+DESTROY_POLL:
+    free(pfds);
+    pfds = NULL;
+    
+EXIT:
+    return ret_val;
 }
 
 /* End of File */

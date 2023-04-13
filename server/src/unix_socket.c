@@ -98,48 +98,6 @@ EXIT:
     return ret_val;
 }
 
-/**
- * @brief Cited from "https://beej.us/guide/bgnet/html/#sendall".
- * Function is along the same lines with some additional checks.
- * 
- * @param sockfd Client socket
- * @param buffer Buffer to send
- * @param length The size of the buffer
- * @return int Return -1 on error or 0 on Success.
- */
-int unix_send_data(int sockfd, char * buffer, int *buffer_sz)
-{
-    int ret_val = -1;
-    int total_bytes_sent = 0;
-    int bytes_remaining = *buffer_sz;
-    int bytes_sent = 0;
-    if ((-1 == sockfd) || (NULL == buffer) || (NULL == buffer_sz))
-    {
-        if (-1 == sockfd)
-        {
-            fprintf(stderr, "Socket is closed.\n");
-        } else {
-            err_funcs_print_error(__func__);
-        }
-        goto EXIT;
-    }
-    while (total_bytes_sent < *buffer_sz)
-    {
-        bytes_sent = send(sockfd, buffer + total_bytes_sent, bytes_remaining, 0);
-        if (-1 == bytes_sent)
-        {
-            perror("send");
-            goto EXIT;
-        }
-        total_bytes_sent += bytes_sent;
-        bytes_remaining -= bytes_sent;
-    }
-    *buffer_sz = total_bytes_sent;
-
-    ret_val = 0;
-    EXIT:
-        return ret_val;
-}
 
 /**
  * @brief Loop and handle partial recvs
@@ -155,19 +113,21 @@ int unix_recv_data(int sockfd, char * buffer, int buffer_sz)
     ssize_t bytes_recv = 0;
     ssize_t total_bytes_recv = 0;
     int bytes_remaining = buffer_sz;
-    if ((-1 == sockfd) || (NULL == buffer))
+    if (-1 == sockfd) 
+    
     {
-        if (-1 == sockfd)
-        {
-            fprintf(stderr, "Socket is closed.\n");
-        } else {
-            err_funcs_print_error(__func__);
-        }
+        fprintf(stderr, "Socket is closed.\n");
+        goto EXIT;
+    }
+    if (NULL == buffer)
+    {
+        err_funcs_print_error(__func__);
         goto EXIT;
     }
 
-    for(;;)
+    while (total_bytes_recv < bytes_remaining)
     {
+        // Running is an external variable used in the threading case.
         if (1 == running)
         {
             goto EXIT;
@@ -184,6 +144,8 @@ int unix_recv_data(int sockfd, char * buffer, int buffer_sz)
             {
                 goto EXIT_COMPLETE;
             } else {
+                perror("Recv");
+                errno = 0;
                 goto EXIT;
             }
         }
@@ -225,6 +187,49 @@ int unix_accept(int socket, int * p_container)
 
 EXIT:
     return ret_val;
+}
+
+/**
+ * @brief Cited from "https://beej.us/guide/bgnet/html/#sendall".
+ * Function is along the same lines with some additional checks.
+ * 
+ * @param sockfd Client socket
+ * @param buffer Buffer to send
+ * @param length The size of the buffer
+ * @return int Return -1 on error or 0 on Success.
+ */
+int unix_send_data(int sockfd, void * p_data, size_t *buffer_sz)
+{
+    int ret_val = -1;
+    size_t total_bytes_sent = 0;
+    int bytes_remaining = *buffer_sz;
+    int bytes_sent = 0;
+    if ((-1 == sockfd) || (NULL == p_data) || (NULL == buffer_sz))
+    {
+        if (-1 == sockfd)
+        {
+            fprintf(stderr, "Socket is closed.\n");
+        } else {
+            err_funcs_print_error(__func__);
+        }
+        goto EXIT;
+    }
+    while (total_bytes_sent < *buffer_sz)
+    {
+        bytes_sent = send(sockfd,(char *)(p_data) + total_bytes_sent, bytes_remaining, 0);
+        if (-1 == bytes_sent)
+        {
+            perror("send");
+            goto EXIT;
+        }
+        total_bytes_sent += bytes_sent;
+        bytes_remaining -= bytes_sent;
+    }
+    *buffer_sz = total_bytes_sent;
+
+    ret_val = 0;
+    EXIT:
+        return ret_val;
 }
 
 static int check_path(char * p_path, struct sockaddr_un * p_addr)

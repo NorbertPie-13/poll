@@ -29,6 +29,30 @@ void err_funcs_print_error(const char * p_name)
 }
 
 
+off_t
+err_get_size(char *p_file)
+{
+    off_t ret_val = ERROR;
+    if (NULL == p_file)
+    {
+        fprintf(stderr, "%s recieved NULL pointer.\n", __func__);
+        goto EXIT;
+    }
+
+    errno                 = 0;
+    struct stat file_info = { 0 };
+    if (-1 == stat(p_file, &file_info))
+    {
+        perror("stat");
+        errno = 0;
+        goto EXIT;
+    }
+
+    ret_val = file_info.st_size;
+EXIT:
+    return ret_val;
+}
+
 int err_funcs_check_num_string(char * p_string)
 {
     int ret_val = EXIT_FAILURE;

@@ -12,14 +12,16 @@
 #ifndef ERR_FUNCS_H
 #define ERR_FUNCS_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
 #include <ctype.h>
+#include "common.h"
 
 #define ERROR    -1
-#define FAIL     1
 #define NINE 58
 #define BACKSLASH 47
 
@@ -30,6 +32,14 @@
  * @return void
  */
 void err_funcs_print_error(const char * p_name);
+
+/**
+ * @brief Get the size of a file
+ * 
+ * @param p_file File to assess
+ * @return off_t Return -1 on error, otherwise return file size.
+ */
+off_t err_get_size(char *p_file);
 
 /**
  * @brief Check for function to if socket function is in Error state
