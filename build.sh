@@ -4,8 +4,7 @@ USAGE="Usage: $(basename $0) [ debug | release ]"
 CMAKE=cmake
 BUILD=./build
 TYPE=Debug
-TEST=./test
-SERVER=$TEST/server
+
 
 DIR=( $BUILD $TEST $SERVER)
 
@@ -18,16 +17,7 @@ for arg; do
     esac
 done
 
-for i in "${DIR[@]}"
-do
-    if [ -d "$i" ];
-    then
-      echo " $i does exist."
-    else
-      mkdir $i
-    fi
-done
-
+mkdir build
 cd build
 cmake ..  $BUILD_DIR -DCMAKE_BUILD_TYPE=$TYPE 
 make
