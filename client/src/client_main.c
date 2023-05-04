@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
         goto EXIT;
     }
     
-    printf("Creating a client on %s")
+    printf("Creating a client on %s\n", host);
     
     int client = socket(AF_UNIX, SOCK_STREAM, 0);
     if (-1 == client)
