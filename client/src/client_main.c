@@ -30,6 +30,14 @@ int main(int argc, char ** argv)
         .sun_family = AF_UNIX,
     };
     
+    char host[2048] = { 0 };
+    if (-1 == gethostname(host, 2047))
+    {
+        goto EXIT;
+    }
+    
+    printf("Creating a client on %s")
+    
     int client = socket(AF_UNIX, SOCK_STREAM, 0);
     if (-1 == client)
     {
