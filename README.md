@@ -43,6 +43,7 @@ Poll would be used when its unknown how many communication chains will be needed
 | - Uses at most 3 bits per file descriptor | - Uses 64 bits per file descriptor|
 
 ## Example
+#### Must have Sudo Privledges and be on UNIX computer as this uses UNIX Domain Sockets
 <ol>
   <li> Run ./build.sh
   <li> The server is located in <code>/build/bin/poll_server</code>
