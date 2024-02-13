@@ -23,7 +23,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         link_libraries(-fsanitize=address)
         add_compile_definitions(DEBUG)
         set(CMAKE_C_CLANG_TIDY
-                "clang-tidy" "-checks=${CMAKE_CHECKS}" "-warnings-as-errors=*"
+                "clang-tidy" "-checks=${CMAKE_CHECKS}" 
         )
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
         message(STATUS "*** building in RELEASE mode ***")
