@@ -30,7 +30,7 @@ Poll unlike select, can grow and shrink as needed. It is not a statically alloca
 ### Advantage of Select over Poll
 Select seems like it has already lost the fight against Poll, but that is not the case. Poll can perform multiplexing with higher numbers, but the speed of Select at values less than 1024 is much greater. Unlike Poll, select is also very portable. It is used on most systems and can be moved around easily. Atlast, the reason Select is performing faster than poll is its efficent use of meta-data in file descriptors. It uses at most three bits of data per file descriptor, while Poll uses 64 bits. This causes the performance to slow due to the amount of data needed to copy over.
 
-## Who Win's
+## Who Wins
 So, who wins? Is Select better or is Poll? Honestly, depends on the use case. Both in regards to threading and multiprocessing are slow. This is because multiplexing is a synchronous function. Cases that select would be better, would be when it is known that your communication chains will be less than 1024 and you know how many communication chains will be used. Additionally, if the program needs to perform on older systems, Select wins.
 
 Poll would be used when its unknown how many communication chains will be needed. This is cause Poll has the ability to shrink and grow as needed. If its known that you will have a greater number of communication chains, poll is once again winning. Poll should only be implemented on newer systems rather than legacy systems.
@@ -45,13 +45,13 @@ Poll would be used when its unknown how many communication chains will be needed
 ## Example
 <ol>
   <li> Run ./build.sh
-  <li> The server is located in /build/bin/poll_server
+  <li> The server is located in <code>/build/bin/poll_server</code>
       <ul>
         <li> To run, <code>./poll_server &ltUNIX_FILEPATH&gt</code>
         <li> The server should display that it is awaiting connections.
         <li> Upon a connection the server should display the amount of characters of a filename and the number of characters in the file.
        </ul>
-  <li> The client is located in /build/bin/poll_client
+  <li> The client is located in <code>/build/bin/poll_client</code>
     <ul>
       <li> To run, <code> ./poll_client &ltUNIX_FILEPATH&gt &ltFILE&gt </code>
       <li> FILE is the file of which you want to grab a spiecific amount of characters from.
